@@ -1,23 +1,22 @@
-import os
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
-from sqlalchemy.orm import DeclarativeBase
+from typing import AsyncIterator
 
-DATABASE_URL = os.getenv(
-    "DATABASE_URL", 
-    "postgresql+asyncpg://postgres:postgrespassword@localhost:5432/task_tracker"
-)
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-engine = create_async_engine(DATABASE_URL, echo=True)
+from app.core.config import get_settings
 
+settings = get_settings()
+
+engine = create_async_engine(settings.DATABASE_URL, pool_pre_ping=True)
+
+# expire_on_commit=False: expired attributes would trigger a lazy load after
+# commit, which async SQLAlchemy cannot perform.
 AsyncSessionLocal = async_sessionmaker(
     bind=engine,
     class_=AsyncSession,
-    expire_on_commit=False
+    expire_on_commit=False,
 )
 
-class Base(DeclarativeBase):
-    pass
 
-async def get_db():
+async def get_db() -> AsyncIterator[AsyncSession]:
     async with AsyncSessionLocal() as session:
         yield session
