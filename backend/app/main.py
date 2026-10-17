@@ -9,13 +9,14 @@ from app.core.config import get_settings
 from app.core.database import engine
 from app.core.exceptions import register_exception_handlers
 from app.core.logging import configure_logging
-from app.routers import health
+from app.routers import auth, health
 
 settings = get_settings()
 log = logging.getLogger(__name__)
 
 OPENAPI_TAGS = [
     {"name": "health", "description": "Liveness and dependency checks."},
+    {"name": "auth", "description": "Registration, login and the current user."},
     # auth / tasks / alarms tags arrive in Phases 3-5.
 ]
 
@@ -33,7 +34,7 @@ def create_app() -> FastAPI:
 
     app = FastAPI(
         title="Task & Alarm API",
-        version="0.2.0",
+        version="0.3.0",
         openapi_tags=OPENAPI_TAGS,
         lifespan=lifespan,
         # Swagger is dev-only; Phase 18 hardens this further.
@@ -52,6 +53,7 @@ def create_app() -> FastAPI:
 
     register_exception_handlers(app)
     app.include_router(health.router, prefix=settings.API_PREFIX)
+    app.include_router(auth.router, prefix=settings.API_PREFIX)
 
     return app
 
