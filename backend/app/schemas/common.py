@@ -14,3 +14,5 @@ class ValidationErrorResponse(ErrorResponse):
     """422 adds FastAPI's structured error list."""
 
     errors: Optional[List[Any]] = None
+
+UtcDatetime = Annotated[AwareDatetime, AfterValidator(lambda v: v.astimezone(timezone.utc))]
